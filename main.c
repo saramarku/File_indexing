@@ -4,8 +4,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <dirent.h>
+
+#define MAX_WORDS 2000
 
 
+char* read_words(char * filename);
 
 int main (int argc, char** argv) {
 
@@ -13,7 +17,9 @@ int main (int argc, char** argv) {
   size_t dir_length;   // Space for the length of the line
   char* query_line  = NULL;  //the line for the word the user searches for
   size_t query_length;
-
+    
+DIR *dir;
+struct dirent *ent;
 
   // Print the shell prompt
   printf("> Please indicate the path of directory you want to search\n");
@@ -52,11 +58,44 @@ int main (int argc, char** argv) {
     //Get into the path directory 
     chdir(dir_line);
 
+    //"//home//markusar//Desktop//213-project-test"
+    if ((dir = opendir (dir_line)) != NULL) {
+  /* print all the files and directories within directory */
+  while ((ent = readdir (dir)) != NULL) {
+    printf ("%s\n", ent->d_name);
+    char* words = read_words(ent->d_name); 
+  }
+} else {
+  /* could not open directory */
+  perror ("");
+}
 
     
+    closedir (dir);
+    free(dir_line);
+    free(query_line);
+    return 0;
+}
+ 
+char* read_words(char * filename){
+  FILE *file = fopen(filename, "r"); // checking for NULL is boring; i omit it
+  int i=0;
+  char temp[100]; // assuming the words cannot be too long
+  char *words[MAX_WORDS];
+
+  while (!feof(file))
+    {
+      // Read a word from the file
+      if (fscanf(file, "%s", temp) != 1)
+        break;
+      // note: "!=1" checks for end-of-file; using feof for that is usually a bug
+      // Allocate memory for the word, because temp is too temporary
+      words[i] = strdup(temp);
+      printf("%s\n", words[i]);
+    }
 
     
-  free(dir_line);
-  free(query_line);
-  return 0;
+  fclose(file);
+  return words;
+
 }
