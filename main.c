@@ -9,7 +9,7 @@
 #define MAX_WORDS 2000
 
 
-char* read_words(char * filename);
+char** read_words(char * filename);
 
 int main (int argc, char** argv) {
 
@@ -17,9 +17,9 @@ int main (int argc, char** argv) {
   size_t dir_length;   // Space for the length of the line
   char* query_line  = NULL;  //the line for the word the user searches for
   size_t query_length;
-    
-DIR *dir;
-struct dirent *ent;
+  char** words;
+  DIR *dir;
+  struct dirent *ent;
 
   // Print the shell prompt
   printf("> Please indicate the path of directory you want to search\n");
@@ -36,11 +36,15 @@ struct dirent *ent;
     }
   }
 
-    
-  printf("Received command: %s\n",dir_line);
- printf("> Please indicate the word you want to search for\n");
 
-// Get a line of stdin, storing the string pointer in query_line and length in query_length
+  // size_t length = strlen(dir_line) -1;
+  
+  dir_line = strtok(dir_line, "\n");
+
+  printf("Received command: %s\n",dir_line);
+  printf("> Please indicate the word you want to search for\n");
+
+  // Get a line of stdin, storing the string pointer in query_line and length in query_length
  
   if(getline(&query_line, &query_length, stdin) == -1){
     if(errno == EINVAL) {
@@ -53,35 +57,37 @@ struct dirent *ent;
     }
 
   }
-    printf("Received command: %s\n",query_line);
+  printf("Received command: %s\n",query_line);
     
-    //Get into the path directory 
-    chdir(dir_line);
+  //Get into the path directory 
+  chdir(dir_line);
 
-    //"//home//markusar//Desktop//213-project-test"
-    if ((dir = opendir (dir_line)) != NULL) {
-  /* print all the files and directories within directory */
-  while ((ent = readdir (dir)) != NULL) {
-    printf ("%s\n", ent->d_name);
-    char* words = read_words(ent->d_name); 
+  //"//home//markusar//Desktop//213-project-test"
+  if ((dir = opendir (dir_line)) != NULL) {
+    /* print all the files and directories within directory */
+    while ((ent = readdir (dir)) != NULL) {
+      printf ("%s\n", ent->d_name);
+      words = read_words(ent->d_name); 
+    }
+  } else {
+    /* could not open directory */
+    perror ("");
   }
-} else {
-  /* could not open directory */
-  perror ("");
-}
 
     
-    closedir (dir);
-    free(dir_line);
-    free(query_line);
-    return 0;
+  closedir (dir);
+  free(dir_line);
+  free(query_line);
+  free(words);
+  return 0;
+    
 }
  
-char* read_words(char * filename){
+char** read_words(char * filename){
   FILE *file = fopen(filename, "r"); // checking for NULL is boring; i omit it
   int i=0;
   char temp[100]; // assuming the words cannot be too long
-  char *words[MAX_WORDS];
+  char**words = (char**) malloc(sizeof(char*)*MAX_WORDS);
 
   while (!feof(file))
     {
