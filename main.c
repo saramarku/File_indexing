@@ -10,8 +10,6 @@
 #include <pthread.h>
 
 
-
-
 /*
   Citations:
 
@@ -19,8 +17,10 @@
   Reading words from a file: http://stackoverflow.com/questions/15508828/program-to-read-words-from-a-file-and-count-their-occurrence-in-the-file
   Getting input: The shell lab 
   Dictionary: Data-structures lab. 
+  Helping read through mulitple directories within a directory: http://stackoverflow.com/questions/19365522/c-programming-how-to-recursively-get-files-in-directories-and-sub-directories
 
 */
+
 #define MAX_WORDS 2000
 char** read_words(char * filename, my_dict_t* my_dict);
 void listDir_helper(char* path, my_dict_t* my_dict);
@@ -32,7 +32,7 @@ int main (int argc, char** argv) {
   size_t dir_length;   // Space for the length of the line
   char* query_line  = NULL;  //the line for the word the user searches for
   size_t query_length;
-    char buf[MAX_WORDS + 1];
+  char buf[MAX_WORDS + 1];
   my_dict_t* my_dictionary = dict_create();
 
   // Print the shell prompt
@@ -52,7 +52,7 @@ int main (int argc, char** argv) {
   
   dir_line = strtok(dir_line, "\n");
   //Check for invalid directory path 
-    if (chdir(dir_line) != 0 ){
+  if (chdir(dir_line) != 0 ){
     printf("Not a directory\n");
     return;
   }
@@ -77,7 +77,7 @@ int main (int argc, char** argv) {
 
   }
 
-   query_line = strtok(query_line, "\n");
+  query_line = strtok(query_line, "\n");
   printf("Received command: %s\n",query_line);
     
 
@@ -124,43 +124,27 @@ void listDir_helper(char* path, my_dict_t* my_dict) {
   struct dirent *ent;
   char buf1[MAX_WORDS + 1];
   char buf2[MAX_WORDS + 1];
-    char buf3[MAX_WORDS + 1];
+  char buf3[MAX_WORDS + 1];
   char *NulPosition = &path[strlen(path)];
   
   if ((dir = opendir(path)) != NULL) {
     while ((ent = readdir(dir)) != NULL) {
-      
-      printf("%s\n", realpath(path,buf1));
-      printf("%s\n", ent->d_name);
       if (ent->d_type == DT_DIR) {
-        // printf("inside directory call\n");
         if ((strcmp(ent->d_name, ".") != 0) && (strcmp(ent->d_name, "..") != 0)) {
-          //printf("inside . or .. call\n");
-           sprintf(NulPosition, "%c%s", slash, ent->d_name);
-           printf("nulposition = %s \n", NulPosition);
-          printf("Reading dir_path %s\n", realpath(ent->d_name,buf2));
+          sprintf(NulPosition, "%c%s", slash, ent->d_name);
           listDir_helper(path, my_dict);
-          //listDir_helper((realpath(ent->d_name,buf2)), my_dict);
-            // printf("inside recursive call\n");
-            //read_words(realpath(ent->d_name,buf2), my_dict); 
-            //closedir(dir);
-            // return;
-          }
-        // *NulPosition = '\0';
+        }
       }
       else if(ent->d_type == DT_REG) {
-      // read_words(realpath(path,buf1), my_dict);
         sprintf(NulPosition, "%c%s", slash, ent->d_name);
-        // printf("Reading %s\n", ent->d_name);
-         printf("Reading path %s\n",NulPosition);//realpath(ent->d_name,buf3));
-         strcat(realpath(path,buf1),NulPosition);
-         read_words(realpath(path,buf1), my_dict);
+        strcat(realpath(path,buf1),NulPosition);
+        read_words(realpath(path,buf1), my_dict);
       }   
     }
     *NulPosition = '\0';
   }
   closedir(dir);
-return;
+  return;
 }
 
 void listDir(char* path, my_dict_t* my_dict){

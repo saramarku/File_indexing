@@ -49,7 +49,7 @@ void dict_destroy(my_dict_t* dict) {
 // Set a value in a dictionary
 void dict_set(my_dict_t* dict, const char* key, const char* value) {
   unsigned int index = hash_func(key);
-  // printf("Index: %u\n", index);
+  // printf("Key= %s Val = %s Index = %u\n", key, value, index);
   pthread_rwlock_wrlock(&(dict->arr[index].lock));
   list_node* new_node = (list_node*) malloc(sizeof(list_node*));
   //if the first item in the list
@@ -86,26 +86,19 @@ void dict_set(my_dict_t* dict, const char* key, const char* value) {
 // Get a value in a dictionary
 const char* dict_get(my_dict_t* dict, const char* key) {
   unsigned int index = hash_func(key);
-  printf("index=%u\n", index);
   pthread_rwlock_tryrdlock(&dict->arr[index].lock);
   list_node* current = dict->arr[index].head;
   while(current != NULL){
-    printf("key = %s\n", key);
-    printf("current key = %s\n", current->key);
-      printf("current val = %s\n", current->val);
     if(strcmp(current->key, key) ==0)
       {
         pthread_rwlock_unlock(&(dict->arr[index].lock));
-        // printf("should be key: %s\n", current->val);
         return current->val;
       }
     else
       current = current->next;
-    //  printf("current: %s\n", current);
   }//value not found so return null
   pthread_rwlock_unlock(&(dict->arr[index].lock));
   return NULL;
-  
 }
 
 // Remove a value from a dictionary
