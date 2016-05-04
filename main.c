@@ -12,6 +12,7 @@
 
 /*
   Citations:
+/home/markusar/Desktop/213-project-test
 
   For getting the full path: http://stackoverflow.com/questions/19641798/get-the-full-path-of-the-files-in-c
   Reading words from a file: http://stackoverflow.com/questions/15508828/program-to-read-words-from-a-file-and-count-their-occurrence-in-the-file
@@ -83,10 +84,17 @@ int main (int argc, char** argv) {
 
 
   // const char* wrd = dict_get(my_dictionary, "Hello2");//check if the word not found
+  char ** values = (char**) malloc(sizeof(char*)*2000);
+   values  = dict_get(my_dictionary, query_line);
+  printf("%s is found in the following files: \n", query_line);
+  int j=0;
+  while(values[j] != NULL){
+    printf("%s\n", values[j]);
+    j++;
+  }
+ 
   
-  printf("%s is found in the following files: \n %s\n",
-         query_line, dict_get(my_dictionary, query_line));
-
+  free(values);
   free(dir_line);
   free(query_line);
   return 0;

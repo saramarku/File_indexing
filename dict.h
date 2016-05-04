@@ -21,7 +21,7 @@ extern "C" {
   
   typedef struct my_dict{
     pthread_mutex_t destroyLock;
-    arr_node arr[100];
+    arr_node arr[2000];
   } my_dict_t;
 
   //
@@ -39,7 +39,7 @@ extern "C" {
   void dict_set(my_dict_t* dict, const char* key, const char* value);
 
   // Get a value in a dictionary
-  const char* dict_get(my_dict_t* dict, const char* key);
+  char** dict_get(my_dict_t* dict, const char* key);
 
   // Remove a value from a dictionary
   void dict_remove(my_dict_t* dict, const char* key);

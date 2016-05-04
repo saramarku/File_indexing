@@ -63,12 +63,6 @@ void dict_set(my_dict_t* dict, const char* key, const char* value) {
     list_node* current = dict->arr[index].head;
     list_node* prev = NULL;
     while(current != NULL){
-      //first check if there is already a node with the same key
-      if(strcmp(current->key, key) ==0){
-	current->val = value;
-        pthread_rwlock_unlock(&(dict->arr[index].lock));
-        return;
-      }
       prev = current;
       current = current->next;
     }
@@ -84,21 +78,20 @@ void dict_set(my_dict_t* dict, const char* key, const char* value) {
 
 
 // Get a value in a dictionary
-const char* dict_get(my_dict_t* dict, const char* key) {
+char** dict_get(my_dict_t* dict, const char* key) {
+  char** val_array = (char**) malloc(sizeof(char*)*100);
+  int i = 0;
   unsigned int index = hash_func(key);
   pthread_rwlock_tryrdlock(&dict->arr[index].lock);
   list_node* current = dict->arr[index].head;
   while(current != NULL){
-    if(strcmp(current->key, key) ==0)
-      {
-        pthread_rwlock_unlock(&(dict->arr[index].lock));
-        return current->val;
-      }
-    else
-      current = current->next;
+    val_array[i]= (char*)current->val;
+    i++;
+    current = current->next;
   }//value not found so return null
   pthread_rwlock_unlock(&(dict->arr[index].lock));
-  return NULL;
+  val_array[i] = NULL;
+  return val_array;
 }
 
 // Remove a value from a dictionary
@@ -132,15 +125,15 @@ void dict_remove(my_dict_t* dict, const char* key) {
 
 //Citation: djb2 hash function
 //from http://www.cse.yorku.ca/~oz/hash.html
+
 unsigned int hash_func(const char *str)
 {
   unsigned int hash = 5381;
   int c;
 
   while ((c = *str++))
-    hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-  
-  hash = hash%100;
+    hash = ((hash << 5) + hash) + c; /* hash * 33 + c */  
+  hash = hash%2000;
   return hash;
 }
 //take the sum of all chars and modulo by 100
