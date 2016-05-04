@@ -63,8 +63,13 @@ void dict_set(my_dict_t* dict, const char* key, const char* value) {
     list_node* current = dict->arr[index].head;
     list_node* prev = NULL;
     while(current != NULL){
-      prev = current;
-      current = current->next;
+      if (strcmp(current->key, key) == 0 && strcmp(current->val, value) == 0){
+         pthread_rwlock_unlock(&(dict->arr[index].lock));
+        return; 
+      }
+        prev = current;
+        current = current->next;
+      
     }
     new_node->key = key;
     new_node->val = value;
