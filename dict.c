@@ -50,6 +50,9 @@ void dict_destroy(my_dict_t* dict) {
 void dict_set(my_dict_t* dict, const char* key, const char* value) {
   unsigned int index = hash_func(key);
   // printf("Key= %s Val = %s Index = %u\n", key, value, index);
+  if (strcmp(key, "times") == 0){
+    printf("Key= %s Val = %s Index = %u\n", key, value, index);
+  }
   pthread_rwlock_wrlock(&(dict->arr[index].lock));
   list_node* new_node = (list_node*) malloc(sizeof(list_node*));
   //if the first item in the list

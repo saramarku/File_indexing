@@ -19,6 +19,7 @@
   Getting input: The shell lab 
   Dictionary: Data-structures lab. 
   Helping read through mulitple directories within a directory: http://stackoverflow.com/questions/19365522/c-programming-how-to-recursively-get-files-in-directories-and-sub-directories
+Reading only text files: http://stackoverflow.com/questions/30216643/how-to-list-all-the-txt-files-in-the-current-directory
 
 */
 
@@ -118,6 +119,8 @@ char** read_words(char * filename, my_dict_t* my_dict){
       // note: "!=1" checks for end-of-file; using feof for that is usually a bug
       // Allocate memory for the word, because temp is too temporary
       words[i] = strdup(temp);
+      //words[i] = strtok(words[i], ".!?,():;");
+      //printf("%s\n", words[i]);
       dict_set(my_dict, words[i],strdup(filename));
     }
    
@@ -138,15 +141,18 @@ void listDir_helper(char* path, my_dict_t* my_dict) {
   if ((dir = opendir(path)) != NULL) {
     while ((ent = readdir(dir)) != NULL) {
       if (ent->d_type == DT_DIR) {
-        if ((strcmp(ent->d_name, ".") != 0) && (strcmp(ent->d_name, "..") != 0)) {
+        if ((strcmp(ent->d_name, ".") != 0) && (strcmp(ent->d_name, "..") != 0)){
           sprintf(NulPosition, "%c%s", slash, ent->d_name);
           listDir_helper(path, my_dict);
         }
       }
       else if(ent->d_type == DT_REG) {
+        int length = strlen(ent->d_name);
+        if (strncmp(ent->d_name + length - 4, ".txt", 4) == 0){
         sprintf(NulPosition, "%c%s", slash, ent->d_name);
         strcat(realpath(path,buf1),NulPosition);
         read_words(realpath(path,buf1), my_dict);
+        }         
       }   
     }
     *NulPosition = '\0';
