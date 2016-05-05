@@ -9,6 +9,10 @@
 #include "dict.h"
 #include <pthread.h>
 
+#include <time.h>
+#include <sys/time.h>
+#include <signal.h>
+
 
 /*
   Citations:
@@ -60,8 +64,11 @@ int main (int argc, char** argv) {
   }
   printf("Received command: %s\n",dir_line);
  
-
+  // time_t start_time = time_ms();
   listDir(dir_line, my_dictionary);
+  // time_t inter_time = time_ms();
+  //time_t list_dir_time = inter_time - start_time;
+  //printf("%List_dir_time: ld \n", list_dir_time);
   //read_words(realpath(ent->d_name, buf), my_dictionary);
   printf("> Please indicate the word you want to search for\n");
 
@@ -78,10 +85,9 @@ int main (int argc, char** argv) {
     }
 
   }
-
+  // time_t inter_start_time = time_ms();
   query_line = strtok(query_line, "\n");
   printf("Received command: %s\n",query_line);
-    
 
 
   // const char* wrd = dict_get(my_dictionary, "Hello2");//check if the word not found
@@ -93,8 +99,10 @@ int main (int argc, char** argv) {
     printf("%s\n", values[j]);
     j++;
   }
- 
-  
+  // time_t end_time = time_ms();
+  // time_t get_time = end_time - inter_start_time;
+  // time_t total_time = get_time + list_dir_time;
+  // printf("%Total time: ld \n", total_time);
   free(values);
   free(dir_line);
   free(query_line);
@@ -119,7 +127,7 @@ char** read_words(char * filename, my_dict_t* my_dict){
       // note: "!=1" checks for end-of-file; using feof for that is usually a bug
       // Allocate memory for the word, because temp is too temporary
       words[i] = strdup(temp);
-      //words[i] = strtok(words[i], ".!?,():;");
+      words[i] = strtok(words[i], ".!?,():\";");
       //printf("%s\n", words[i]);
       dict_set(my_dict, words[i],strdup(filename));
     }

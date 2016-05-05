@@ -49,10 +49,9 @@ void dict_destroy(my_dict_t* dict) {
 // Set a value in a dictionary
 void dict_set(my_dict_t* dict, const char* key, const char* value) {
   unsigned int index = hash_func(key);
-  // printf("Key= %s Val = %s Index = %u\n", key, value, index);
-  if (strcmp(key, "times") == 0){
-    printf("Key= %s Val = %s Index = %u\n", key, value, index);
-  }
+  if(hash_func(key) == hash_func("December")){
+   printf("Key= %s Val = %s Index = %u\n", key, value, index);
+    }
   pthread_rwlock_wrlock(&(dict->arr[index].lock));
   list_node* new_node = (list_node*) malloc(sizeof(list_node*));
   //if the first item in the list
@@ -140,7 +139,7 @@ unsigned int hash_func(const char *str)
   int c;
 
   while ((c = *str++))
-    hash = ((hash << 5) + hash) + c; /* hash * 33 + c */  
+    hash = ((hash << 5) + hash) * hash * 33 + c ;  
   hash = hash%2000;
   return hash;
 }
