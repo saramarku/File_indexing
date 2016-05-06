@@ -49,9 +49,7 @@ void dict_destroy(my_dict_t* dict) {
 // Set a value in a dictionary
 void dict_set(my_dict_t* dict, const char* key, const char* value) {
   unsigned int index = hash_func(key);
-  if(hash_func(key) == hash_func("December")){
-   printf("Key= %s Val = %s Index = %u\n", key, value, index);
-    }
+  //printf("Key= %s Val = %s Index = %u\n", key, value, index);
   pthread_rwlock_wrlock(&(dict->arr[index].lock));
   list_node* new_node = (list_node*) malloc(sizeof(list_node*));
   //if the first item in the list
@@ -65,13 +63,13 @@ void dict_set(my_dict_t* dict, const char* key, const char* value) {
     list_node* current = dict->arr[index].head;
     list_node* prev = NULL;
     while(current != NULL){
-      if (strcmp(current->key, key) == 0 && strcmp(current->val, value) == 0){
+      if (hash_func(current->key) == hash_func(key) &&
+          strcmp(current->val, value) == 0){
          pthread_rwlock_unlock(&(dict->arr[index].lock));
         return; 
       }
         prev = current;
-        current = current->next;
-      
+        current = current->next; 
     }
     new_node->key = key;
     new_node->val = value;
@@ -91,7 +89,13 @@ char** dict_get(my_dict_t* dict, const char* key) {
   unsigned int index = hash_func(key);
   pthread_rwlock_tryrdlock(&dict->arr[index].lock);
   list_node* current = dict->arr[index].head;
-  while(current != NULL){
+  printf("Current key = %s\n", current->key);
+  /* if(strcmp(current->key, key) != 0 && hash_func(current->key) == hash_func(key)){ */
+  /*   printf("different key\n"); */
+  /*   val_array[0] = NULL; */
+  /*   return val_array; */
+  /* } */
+      while(current != NULL){
     val_array[i]= (char*)current->val;
     i++;
     current = current->next;
@@ -99,7 +103,8 @@ char** dict_get(my_dict_t* dict, const char* key) {
   pthread_rwlock_unlock(&(dict->arr[index].lock));
   val_array[i] = NULL;
   return val_array;
-}
+    }
+
 
 // Remove a value from a dictionary
 void dict_remove(my_dict_t* dict, const char* key) {
@@ -139,7 +144,7 @@ unsigned int hash_func(const char *str)
   int c;
 
   while ((c = *str++))
-    hash = ((hash << 5) + hash) * hash * 33 + c ;  
+    hash = ((hash << 5) + hash) + c ;//* 33 + c ;  
   hash = hash%2000;
   return hash;
 }
