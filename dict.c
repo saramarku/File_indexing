@@ -95,6 +95,11 @@ char** dict_get(my_dict_t* dict, const char* key) {
   /*   val_array[0] = NULL; */
   /*   return val_array; */
   /* } */
+
+  if(current == NULL){
+val_array[0] = NULL;
+ return val_array;
+  }
       while(current != NULL){
     val_array[i]= (char*)current->val;
     i++;
