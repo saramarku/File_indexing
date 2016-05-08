@@ -15,6 +15,7 @@
 
 using namespace std; 
 
+//function used to evaluate performance of seriallization and parellelization 
 size_t time_ms() {
   struct timeval tv;
   if(gettimeofday(&tv, NULL) == -1) {
@@ -24,19 +25,15 @@ size_t time_ms() {
   return tv.tv_sec*1000 + tv.tv_usec/1000;
 }
 
-int count_files =0;
-
 /*
   Citations:
 /home/markusar/Desktop/213-project-test
-
   For getting the full path: http://stackoverflow.com/questions/19641798/get-the-full-path-of-the-files-in-c
   Reading words from a file: http://stackoverflow.com/questions/15508828/program-to-read-words-from-a-file-and-count-their-occurrence-in-the-file
   Getting input: The shell lab 
   Dictionary: Data-structures lab. 
   Helping read through mulitple directories within a directory: http://stackoverflow.com/questions/19365522/c-programming-how-to-recursively-get-files-in-directories-and-sub-directories
 Reading only text files: http://stackoverflow.com/questions/30216643/how-to-list-all-the-txt-files-in-the-current-directory
-
 */
 
 #define MAX_WORDS 2000
@@ -45,7 +42,7 @@ Reading only text files: http://stackoverflow.com/questions/30216643/how-to-list
 void read_words(char * filename, my_dict_t* my_dict);
 void listDir_helper(char* path, my_dict_t* my_dict);
 void listDir(char* path, my_dict_t* my_dict);
-void helper( my_dict_t* my_dict, char** words, char*filename,int start, int counter);
+void thread_func( my_dict_t* my_dict, char** words, char*filename,int start, int counter);
 
 int main (int argc, char** argv) {
 
@@ -79,11 +76,11 @@ int main (int argc, char** argv) {
   }
   printf("Received command: %s\n",dir_line);
  
-  time_t start_time = time_ms();
+  // time_t start_time = time_ms();
   listDir(dir_line, my_dictionary);
-   time_t inter_time = time_ms();
-  time_t list_dir_time = inter_time - start_time;
-  printf("List_dir_time: %ld \n", list_dir_time);
+  //time_t inter_time = time_ms();
+  // time_t list_dir_time = inter_time - start_time;
+
   
   printf("> Please indicate the word you want to search for\n");
 
@@ -101,7 +98,7 @@ int main (int argc, char** argv) {
     }
   }
   
-  time_t inter_start_time = time_ms();
+  // time_t inter_start_time = time_ms();
   query_line = strtok(query_line, "\n");
     if (query_line == NULL){
     printf("No word was inputted.\n");
@@ -125,31 +122,28 @@ int main (int argc, char** argv) {
     printf("%s\n", values[j]);
     j++;
   }
-   time_t end_time = time_ms();
-   time_t get_time = end_time - inter_start_time;
-   time_t total_time = get_time + list_dir_time;
-   printf("Total time: %ld \n", total_time);
-
-  printf("Number of files: %d\n",count_files);
+  // time_t end_time = time_ms();
+  //  time_t get_time = end_time - inter_start_time;
+  // time_t total_time = get_time + list_dir_time;
+  // printf("Total time: %ld \n", total_time);
    
   free(values);
   free(dir_line);
   free(query_line);
+  dict_destroy(my_dictionary);
   return 0;
     
 }
 
-// /home/markusar/Desktop/213-project-test
+
 void read_words(char * filename, my_dict_t* my_dict){
 
-  
   thread thread_array[2];
- 
   FILE *file = fopen(filename, "r");
   int word_counter = 0;
   // checking for NULL
   if(file == NULL)
-    return;
+    return;  
   int i = 0;
   int j = 0;
   char temp[MAX_WORD_LENGTH]; // assuming the words cannot be too long
@@ -166,27 +160,22 @@ void read_words(char * filename, my_dict_t* my_dict){
       //parse words to not include punctuation 
       strcpy(words[i],(strtok(words[i], ".!?,():\";")));
       // printf("words_array[%d] = %s\n",i, words[i]);
-       i++;
+      i++;
       //putting all the words and their paths into the dictionary as key-value pairs
       word_counter++;
       //dict_set(my_dict, words[i],strdup(filename));
     }
 
-  
+  //Using threads to set the words into dictionary , each thread goes through half of the word count
   if(word_counter>1){
-    thread_array[0]= thread(helper,my_dict,words,filename,0, word_counter/2);
-    thread_array[1]= thread(helper,my_dict,words,filename, word_counter/2, word_counter);    
+    thread_array[0]= thread(thread_func,my_dict,words,filename,0, word_counter/2);
+    thread_array[1]= thread(thread_func,my_dict,words,filename, word_counter/2, word_counter);    
     for(j = 0; j<2; j++){
       thread_array[j].join();
-  }
+    }
   }
   else
-    // while(j<word_counter){
     dict_set(my_dict, words[j],strdup(filename));
-  // j++;}
-  
-  
-      printf("word_counter = %d\n", word_counter);
   fclose(file);
 }
 
@@ -217,7 +206,6 @@ void listDir_helper(char* path, my_dict_t* my_dict) {
         int length = strlen(ent->d_name);
         //only go into the text files
         if (strncmp(ent->d_name + length - 4, ".txt", 4) == 0){
-          count_files++;
           //attaching the filename into the path
         sprintf(NulPosition, "%c%s", slash, ent->d_name);
         //attaching the filename into the full path
@@ -245,8 +233,8 @@ void listDir(char* path, my_dict_t* my_dict){
   listDir_helper(pathmax, my_dict);
 }
 
-
-void helper( my_dict_t* my_dict, char** words, char*filename,int start, int counter){
+//function called by thread that sets the words into dictionary
+void thread_func( my_dict_t* my_dict, char** words, char*filename,int start, int counter){
   int j;
 for(j= start; j <counter; j++){
   dict_set(my_dict,words[j],strdup(filename));

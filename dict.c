@@ -58,11 +58,12 @@ void dict_set(my_dict_t* dict, const char* key, const char* value) {
     new_node->val = value;
     new_node->next = NULL;
     dict->arr[index].head = new_node;
-  }
+  }//otherwise
   else{
     list_node* current = dict->arr[index].head;
     list_node* prev = NULL;
     while(current != NULL){
+      //if there are multiple words in the same file then return from while loop
       if (hash_func(current->key) == hash_func(key) &&
           strcmp(current->val, value) == 0){
          pthread_rwlock_unlock(&(dict->arr[index].lock));
@@ -71,6 +72,7 @@ void dict_set(my_dict_t* dict, const char* key, const char* value) {
         prev = current;
         current = current->next; 
     }
+    //set the word and its path to the node
     new_node->key = key;
     new_node->val = value;
     new_node->next = NULL;
@@ -82,33 +84,29 @@ void dict_set(my_dict_t* dict, const char* key, const char* value) {
   
 
 
-// Get a value in a dictionary
+// Get a list of values from the dictionary
 char** dict_get(my_dict_t* dict, const char* key) {
   char** val_array = (char**) malloc(sizeof(char*)*100);
   int i = 0;
   unsigned int index = hash_func(key);
   pthread_rwlock_tryrdlock(&dict->arr[index].lock);
-  list_node* current = dict->arr[index].head;
-  printf("Current key = %s\n", current->key);
-  /* if(strcmp(current->key, key) != 0 && hash_func(current->key) == hash_func(key)){ */
-  /*   printf("different key\n"); */
-  /*   val_array[0] = NULL; */
-  /*   return val_array; */
-  /* } */
-
-  if(current == NULL){
-val_array[0] = NULL;
- return val_array;
+  //if the word is not found
+  if(dict->arr[index].head == NULL){
+    val_array[0] = NULL;
+    return val_array;
   }
-      while(current != NULL){
+  //else
+  list_node* current = dict->arr[index].head;
+  //getting all the values from the array
+  while(current != NULL){
     val_array[i]= (char*)current->val;
     i++;
     current = current->next;
-  }//value not found so return null
+  }
   pthread_rwlock_unlock(&(dict->arr[index].lock));
   val_array[i] = NULL;
   return val_array;
-    }
+}
 
 
 // Remove a value from a dictionary
@@ -153,4 +151,4 @@ unsigned int hash_func(const char *str)
   hash = hash%2000;
   return hash;
 }
-//take the sum of all chars and modulo by 100
+//take the sum of all chars and modulo by 2000
